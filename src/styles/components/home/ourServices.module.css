@@ -1,0 +1,136 @@
+.container {
+  display: flex;
+  flex-direction: column;
+}
+
+.container .goToContact {
+  display: flex;
+  padding: 42px 32px;
+  gap: 32px;
+  justify-content: center;
+  align-items: center;
+  background-color: #fbbd02;
+  color: #ffffff;
+}
+
+.container .goToContact .descContact h3 {
+  font-size: 24px;
+  font-weight: 800;
+}
+
+.container .goToContact .btnCon {
+  display: flex;
+  gap: 16px;
+}
+
+.container .goToContact .btnCon button:nth-child(1) {
+  border: 2px solid white;
+  color: white;
+  font-weight: 500;
+  background-color: #fbbd02;
+  padding: 12px 16px;
+}
+
+.container .goToContact .btnCon button:nth-child(1):hover {
+  background-color: white;
+  color: black;
+  transition: all 0.5s ease-in;
+}
+
+.container .goToContact .btnCon button:nth-child(2) {
+  padding: 12px 16px;
+  border: none;
+  font-weight: 500;
+}
+
+.container .goToContact .btnCon button:nth-child(2):hover {
+  background-color: #fbbd02;
+  color: white;
+  border: 2px solid white;
+  transition: all 0.5s ease-in;
+}
+
+.container .servicesCom {
+  height: 70vh;
+  background-image: url("/public/images/05.jpg");
+  background-position: center;
+  background-size: cover;
+  color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.container .servicesCom .offer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  max-width: 600px;
+}
+
+.container .servicesCom .iconWithDesc {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  justify-content: center;
+  align-items: center;
+  max-width: 700px;
+  gap: 16px;
+  text-align: center;
+}
+
+.container .servicesCom .iconWithDesc div {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.container .servicesCom .iconWithDesc div i {
+  font-size: 40px;
+  color: #fbbd02;
+}
+
+.container .servicesCom .iconWithDesc div p {
+  font-size: 1.2rem;
+}
+.container .servicesCom .iconWithDesc div p::after {
+  content: " ";
+  clear: both;
+  width: 5em;
+  display: flex;
+  margin-top: 10px;
+  margin-left: auto;
+  margin-right: auto;
+  border-bottom: 4px solid #fbbd02;
+}
+
+.container .servicesCom .iconWithDesc div i:hover {
+  /* font-size: 40px; */
+  color: white;
+  transition: all 0.2s ease-in;
+}
+
+.container .servicesCom .offer div:nth-child(2) {
+  text-align: center;
+  font-size: 1.2rem;
+}
+
+@media screen and (max-width: 768px) {
+  .container .goToContact {
+    flex-direction: column;
+  }
+  .container .goToContact .btnCon {
+    flex-direction: column;
+  }
+  .container .servicesCom .iconWithDesc {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media screen and (max-width: 425px) {
+  .container .servicesCom .iconWithDesc {
+    grid-template-columns: 1fr;
+  }
+}

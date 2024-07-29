@@ -1,0 +1,74 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  padding: 16px 32px;
+  gap: 16px;
+}
+
+.counterCom {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+}
+
+.counterCom div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.counterCom div .number {
+  font-size: 2.3rem;
+  font-weight: 750;
+}
+
+.counterCom div .intro {
+  font-size: 1.3rem;
+}
+
+.container .aboutCom {
+  display: flex;
+  justify-content: center;
+  gap: 26px;
+}
+
+.container .aboutCom .imgCon {
+  height: 500px;
+  width: 500px;
+}
+
+.container .aboutCom .imgCon img {
+  height: 100%;
+  width: 100%;
+  object-fit: contain;
+}
+
+.container .aboutCom .descCon {
+  display: flex;
+  justify-content: center;
+  align-items: start;
+  max-width: 500px;
+  gap: 8px;
+  flex-direction: column;
+}
+
+.container .aboutCom .descCon .descPara {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  font-size: 1.2rem;
+}
+
+.container .aboutCom .descCon h3 {
+  font-size: 2rem;
+}
+
+@media screen and (max-width: 768px) {
+  .container .aboutCom {
+    flex-direction: column;
+  }
+  .container .counterCom {
+    flex-direction: column;
+  }
+}

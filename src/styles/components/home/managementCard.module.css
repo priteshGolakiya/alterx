@@ -1,0 +1,56 @@
+.container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(550px, 1fr));
+  margin-top: 15px;
+}
+
+.outer:hover .inner {
+  filter: blur(0px);
+}
+
+.inner:not(:hover) {
+  filter: blur(5px);
+}
+
+.inner {
+  gap: 16px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  margin-top: 4px;
+  margin: 16px;
+  background-color: white;
+}
+
+.inner .imgCon {
+  height: 400px;
+  width: 400px;
+}
+
+.inner .imgCon img {
+  height: 100%;
+  width: 100%;
+  object-fit: contain;
+}
+
+.inner .desc {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.inner .desc p {
+  font-size: 1.2rem;
+}
+
+.inner .desc h3 {
+  font-size: 1.5rem;
+}
+
+@media screen and (max-width: 625px) {
+  .inner .imgCon {
+    height: 100px;
+    width: 100px;
+  }
+}

@@ -1,0 +1,10 @@
+.mainContainer {
+  height: 80vh;
+  width: 100%;
+}
+
+.mainContainer img {
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+}

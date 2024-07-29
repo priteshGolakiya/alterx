@@ -1,0 +1,35 @@
+.container {
+  padding: 16px 32px;
+  background-color: #f2f1ed;
+}
+
+.container .title {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.container .title div:nth-child(2) {
+  font-size: 22px;
+  font-weight: 600;
+}
+
+.container .title p {
+  font-size: 24px;
+}
+
+.container .title h3 {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.container .title h3::after {
+  content: " ";
+  clear: both;
+  width: 5em;
+  display: flex;
+  margin-top: 5px;
+  border-bottom: 4px solid #fbbd02;
+}
