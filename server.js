@@ -82,6 +82,7 @@ const adminAuthMiddleware = require("./middleware/adminAuthMiddleware.js");
 const cookieParser = require("cookie-parser");
 const redis = require("redis");
 const { promisify } = require("util");
+const expressRedisCache = require("express-redis-cache");
 
 // Create Redis client
 const redisClient = redis.createClient({
@@ -89,12 +90,12 @@ const redisClient = redis.createClient({
     process.env.REDIS_HOST ||
     "redis-14825.c16.us-east-1-2.ec2.cloud.redislabs.com",
   port: process.env.REDIS_PORT || 14825,
-  password: process.env.REDIS_PASSWORD || ONFlaPsrpj6kIt8gyj3tJYkiYMd9sctT,
-  tls: {}, // Enable TLS if needed
+  password: process.env.REDIS_PASSWORD, // Ensure the password is set if needed
+  tls: {}, // Optional: Enable TLS if required by your Redis setup
 });
 
 redisClient.on("error", (error) => {
-  console.error("Redis error:", error);
+  console.error("Redis connection error:", error);
 });
 
 // Promisify Redis methods
@@ -102,7 +103,6 @@ const getAsync = promisify(redisClient.get).bind(redisClient);
 const setAsync = promisify(redisClient.set).bind(redisClient);
 
 // Create cache middleware
-const expressRedisCache = require("express-redis-cache");
 const cache = expressRedisCache({
   client: redisClient,
   expire: 60 * 15, // Cache for 15 minutes
@@ -117,6 +117,7 @@ const adminRoutes = require("./routes/admin/admin.js");
 const productRoutes = require("./routes/admin/productRoutes.js");
 
 app.use(cookieParser());
+
 app.use(
   cors({
     origin: (origin, callback) => {
@@ -125,6 +126,7 @@ app.use(
     credentials: true,
   })
 );
+
 app.use(express.json());
 
 app.use("/admin", adminAuthMiddleware);
@@ -137,26 +139,7 @@ app.use("/admin/product", productRoutes);
 app.use("/", commonRoutes);
 app.use("/product", cache.route(), commonProductRoutes);
 
-// Example route using Redis
-app.get("/data", async (req, res) => {
-  try {
-    let data = await getAsync("my_key");
-    if (!data) {
-      // If data is not in cache, fetch from source and store in Redis
-      data = await fetchDataFromSomewhere();
-      await setAsync("my_key", JSON.stringify(data), "EX", 3600); // Cache for 1 hour
-    } else {
-      data = JSON.parse(data);
-    }
-    res.json(data);
-  } catch (error) {
-    console.error("Failed to fetch data:", error);
-    res.status(500).json({ error: "Failed to fetch data" });
-  } finally {
-    redisClient.quit(); // Ensure to close the connection after each request
-  }
-});
-
+// Server setup
 const PORT = process.env.PORT || 5000;
 
 const startServer = async () => {
