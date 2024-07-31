@@ -1,6 +1,14 @@
 const asyncHandler = require("express-async-handler");
 const Product = require("../../../models/productModel");
 
+// Define your cache configuration here
+const CACHE_CONFIG = {
+  PRODUCT_KEY_PREFIX: "product:",
+  ADMIN_PRODUCT_KEY_PREFIX: "admin:product:",
+  PRODUCT_LIST_KEY: "product:list",
+  ADMIN_PRODUCT_LIST_KEY: "admin:product:list",
+};
+
 const getAllProducts = asyncHandler(async (req, res) => {
   try {
     const products = await Product.find({ active: true });
