@@ -10,8 +10,10 @@ const expressRedisCache = require("express-redis-cache");
 
 // Create Redis client
 const redisClient = redis.createClient({
-  host: process.env.REDIS_HOST || "localhost",
-  port: process.env.REDIS_PORT || 6379,
+  host:
+    process.env.REDIS_HOST ||
+    "redis-14825.c16.us-east-1-2.ec2.cloud.redislabs.com",
+  port: process.env.REDIS_PORT || 14825,
 });
 
 redisClient.on("error", (error) => {
