@@ -1,5 +1,7 @@
 const express = require("express");
 const router = express.Router();
+const expressRedisCache = require("express-redis-cache");
+const cache = expressRedisCache({ expire: 60 * 15 }); 
 
 const {
   searchProducts,
@@ -7,8 +9,8 @@ const {
   getProductById,
 } = require("../../controller/common/prodect/prodectController");
 
-router.get("/:id", getProductById);
-router.get("/", getActiveProducts);
-router.get("/search", searchProducts);
+router.get("/:id", cache.route(), getProductById);
+router.get("/", cache.route(), getActiveProducts);
+router.get("/search", cache.route(), searchProducts);
 
 module.exports = router;
