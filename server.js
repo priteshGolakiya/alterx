@@ -7,6 +7,15 @@ const adminAuthMiddleware = require("./middleware/adminAuthMiddleware.js");
 const cookieParser = require("cookie-parser");
 const { createClient } = require("redis");
 
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      callback(null, true);
+    },
+    credentials: true,
+  })
+);
+
 // Create Redis client
 const redisClient = createClient({
   url: `redis://${process.env.REDIS_HOST}:${process.env.REDIS_PORT}`,
@@ -34,6 +43,7 @@ redisClient.on("end", () => {
 // Create a custom cache middleware
 const cache = (duration) => {
   return async (req, res, next) => {
+    console.log(req.originalUrl || req.url);
     const key = "__express__" + (req.originalUrl || req.url);
     try {
       const cachedBody = await redisClient.get(key);
@@ -64,15 +74,6 @@ const adminRoutes = require("./routes/admin/admin.js");
 const productRoutes = require("./routes/admin/productRoutes.js");
 
 app.use(cookieParser());
-
-app.use(
-  cors({
-    origin: (origin, callback) => {
-      callback(null, true);
-    },
-    credentials: true,
-  })
-);
 
 app.use(express.json());
 
