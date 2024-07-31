@@ -24,8 +24,6 @@ const cache = expressRedisCache({
   expire: 60 * 15, // Cache for 15 minutes
 });
 
-const cookieParser = require("cookie-parser");
-
 // ------------------COMMON IMPORTS------------------
 const commonRoutes = require("./routes/common/common.js");
 const commonProductRoutes = require("./routes/common/commonProductRoutes.js");
