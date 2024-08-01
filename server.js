@@ -115,7 +115,7 @@ app.use("/admin/product", productRoutes);
 
 /*--------------------------- Common Routes--------------------------- */
 app.use("/", commonRoutes);
-app.use("/product", cache(10), commonProductRoutes); // Cache for 10 seconds
+app.use("/product", cache(900), commonProductRoutes); // Cache for 10 seconds
 
 // Server setup
 const PORT = process.env.PORT || 5000;
