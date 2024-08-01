@@ -1,7 +1,6 @@
 const asyncHandler = require("express-async-handler");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const { clearCookie } = require("cookie-parser");
 const User = require("../../models/userModel");
 
 // login route
@@ -32,17 +31,17 @@ const login = asyncHandler(async (req, res, next) => {
     role: foundUser.role,
   };
 
-  const token = jwt.sign(user, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRY,
-  });
+  const expiresIn = process.env.JWT_EXPIRY || "1h";
+  const token = jwt.sign(user, process.env.JWT_SECRET, { expiresIn });
 
   const tokenOption = {
     httpOnly: true,
+    maxAge: parseInt(expiresIn) * 1000, // Convert to milliseconds
   };
 
   res.cookie("token", token, tokenOption).status(200).json({
     message: "Login successful",
-    data: { user, token },
+    data: { user, token, expiresIn },
     success: true,
     error: false,
   });
@@ -83,15 +82,14 @@ const signup = asyncHandler(async (req, res, next) => {
     role: newUser.role,
   };
 
-  const token = jwt.sign(user, process.env.JWT_SECRET, {
-    expiresIn: process.env.JWT_EXPIRY,
-  });
+  const expiresIn = process.env.JWT_EXPIRY || "1h";
+  const token = jwt.sign(user, process.env.JWT_SECRET, { expiresIn });
 
   res.status(201).json({
     error: false,
     success: true,
     message: "User created successfully!",
-    data: { user, token },
+    data: { user, token, expiresIn },
   });
 });
 
@@ -192,4 +190,38 @@ const updateUser = async (req, res) => {
   }
 };
 
-module.exports = { login, signup, userDetails, logout, updateUser };
+const refreshToken = asyncHandler(async (req, res) => {
+  const user = {
+    id: req.userId,
+    name: req.userName,
+    email: req.userEmail,
+    role: req.userRole,
+  };
+
+  const expiresIn = process.env.JWT_EXPIRY || "1h";
+  const newToken = jwt.sign(user, process.env.JWT_SECRET, { expiresIn });
+
+  const tokenOption = {
+    httpOnly: true,
+    maxAge: parseInt(expiresIn) * 1000,
+  };
+
+  res
+    .cookie("token", newToken, tokenOption)
+    .status(200)
+    .json({
+      message: "Token refreshed successfully",
+      data: { token: newToken, expiresIn },
+      success: true,
+      error: false,
+    });
+});
+
+module.exports = {
+  login,
+  signup,
+  userDetails,
+  logout,
+  updateUser,
+  refreshToken,
+};

@@ -4,7 +4,6 @@ const express = require("express");
 const app = express();
 const connectDB = require("./db/connection.js");
 const adminAuthMiddleware = require("./middleware/adminAuthMiddleware.js");
-const handleTokenErrors = require("./middleware/handleTokenErrors.js");
 const cookieParser = require("cookie-parser");
 const { createClient } = require("redis");
 
@@ -17,8 +16,8 @@ app.use(
   })
 );
 
-// Create Redis client
-const redisClient = createClient({
+// Redis configuration
+const REDIS_CONFIG = {
   url: `redis://${process.env.REDIS_HOST}:${process.env.REDIS_PORT}`,
   password: process.env.REDIS_PASSWORD,
   socket: {
@@ -26,20 +25,20 @@ const redisClient = createClient({
     keepAlive: 5000,
     reconnectStrategy: (retries) => Math.min(retries * 50, 1000),
   },
-});
+};
+
+// Create Redis client
+const redisClient = createClient(REDIS_CONFIG);
+
 // Connect to Redis
 (async () => {
   try {
     await redisClient.connect();
-    console.log("Connected to Redis in");
+    console.log("Connected to Redis");
   } catch (error) {
     console.error("Failed to connect to Redis:", error);
   }
 })();
-
-redisClient.on("connect", () => {
-  console.log("Redis client connected");
-});
 
 redisClient.on("error", (error) => {
   console.error("Redis error:", error);
@@ -55,11 +54,21 @@ app.use((req, res, next) => {
   next();
 });
 
+// Cache configuration
+const CACHE_CONFIG = {
+  DEFAULT_DURATION: 10,
+  PRODUCT_LIST_KEY: "product:list",
+  ADMIN_PRODUCT_LIST_KEY: "admin:product:list",
+  PRODUCT_KEY_PREFIX: "product:",
+  ADMIN_PRODUCT_KEY_PREFIX: "admin:product:",
+  SEARCH_KEY_PREFIX: "search:",
+};
+
 // Create a custom cache middleware
-const cache = (duration) => {
+const cache = (keyPrefix, duration = CACHE_CONFIG.DEFAULT_DURATION) => {
   return async (req, res, next) => {
-    const key = "express" + (req.originalUrl || req.url);
-    console.log(`Checking cache for key: ${key}`);
+    const key = `${keyPrefix}${req.originalUrl || req.url}`;
+
     try {
       if (!redisClient.isOpen) {
         console.warn("Redis client is not open, skipping cache");
@@ -67,22 +76,18 @@ const cache = (duration) => {
       }
 
       const cachedBody = await redisClient.get(key);
-      console.log(`Cache result for ${key}:`, cachedBody ? "Hit" : "Miss");
-
       if (cachedBody) {
-        console.log("Serving from cache");
-        return res.send(JSON.parse(cachedBody));
+        return res.json(JSON.parse(cachedBody));
+      } else {
+        res.sendResponse = res.json;
+        res.json = (body) => {
+          redisClient
+            .setEx(key, duration, JSON.stringify(body))
+            .catch((error) => console.error("Redis cache set error:", error));
+          res.sendResponse(body);
+        };
+        next();
       }
-
-      console.log("Cache miss, proceeding to handler");
-      res.originalSend = res.send;
-      res.send = function (body) {
-        console.log(`Caching response for ${key}`);
-        redisClient.setEx(key, duration, JSON.stringify(body));
-        res.originalSend(body);
-      };
-
-      next();
     } catch (error) {
       console.error("Redis cache error:", error);
       next();
@@ -108,14 +113,22 @@ app.use(cookieParser());
 app.use(express.json());
 
 app.use("/admin", adminAuthMiddleware);
+
 /*--------------------------- Admin Routes--------------------------- */
 app.use("/admin", adminRoutes);
-app.use("/", handleTokenErrors);
-app.use("/admin/product", productRoutes);
+app.use(
+  "/admin/product",
+  cache(CACHE_CONFIG.ADMIN_PRODUCT_KEY_PREFIX),
+  productRoutes
+);
 
 /*--------------------------- Common Routes--------------------------- */
 app.use("/", commonRoutes);
-app.use("/product", cache(10), commonProductRoutes); // Cache for 10 seconds
+app.use(
+  "/product",
+  cache(CACHE_CONFIG.PRODUCT_KEY_PREFIX),
+  commonProductRoutes
+);
 
 // Server setup
 const PORT = process.env.PORT || 5000;

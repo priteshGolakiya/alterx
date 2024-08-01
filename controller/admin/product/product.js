@@ -1,14 +1,7 @@
 const asyncHandler = require("express-async-handler");
 const Product = require("../../../models/productModel");
 
-// Define your cache configuration here
-const CACHE_CONFIG = {
-  PRODUCT_KEY_PREFIX: "product:",
-  ADMIN_PRODUCT_KEY_PREFIX: "admin:product:",
-  PRODUCT_LIST_KEY: "product:list",
-  ADMIN_PRODUCT_LIST_KEY: "admin:product:list",
-};
-
+// Get all active products
 const getAllProducts = asyncHandler(async (req, res) => {
   try {
     const products = await Product.find({ active: true });
@@ -19,94 +12,96 @@ const getAllProducts = asyncHandler(async (req, res) => {
   }
 });
 
+// Get all active products (same as getAllProducts, can be removed if not needed)
 const getActiveProducts = asyncHandler(async (req, res) => {
-  const products = await Product.find({ active: true });
-  res.json(products);
+  try {
+    const products = await Product.find({ active: true });
+    res.json(products);
+  } catch (error) {
+    console.error("Error in getActiveProducts:", error);
+    res.status(500).json({ message: "Server error" });
+  }
 });
 
+// Get a single active product by ID
 const getProductById = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const product = await Product.findOne({ _id: id, active: true });
-  if (!product) {
-    res.status(404);
-    throw new Error("Product not found");
+  try {
+    const product = await Product.findOne({ _id: id, active: true });
+    if (!product) {
+      res.status(404).json({ message: "Product not found" });
+      return;
+    }
+    res.json(product);
+  } catch (error) {
+    console.error("Error in getProductById:", error);
+    res.status(500).json({ message: "Server error" });
   }
-  res.json(product);
 });
 
+// Search products by name
 const searchProducts = asyncHandler(async (req, res) => {
   const { query } = req.query;
-  const products = await Product.find({
-    name: { $regex: query, $options: "i" },
-    active: true,
-  });
-  res.json(products);
+  try {
+    const products = await Product.find({
+      name: { $regex: query, $options: "i" },
+      active: true,
+    });
+    res.json(products);
+  } catch (error) {
+    console.error("Error in searchProducts:", error);
+    res.status(500).json({ message: "Server error" });
+  }
 });
 
+// Create a new product
 const createProduct = asyncHandler(async (req, res) => {
   const { name, images } = req.body;
-  const product = await Product.create({ name, images, active: true });
-
-  // Invalidate cache
-  await invalidateCache(req.redisClient, [
-    CACHE_CONFIG.PRODUCT_LIST_KEY,
-    CACHE_CONFIG.ADMIN_PRODUCT_LIST_KEY,
-  ]);
-
-  res.status(201).json(product);
+  try {
+    const product = await Product.create({ name, images, active: true });
+    res.status(201).json(product);
+  } catch (error) {
+    console.error("Error in createProduct:", error);
+    res.status(500).json({ message: "Server error" });
+  }
 });
 
+// Update an existing product
 const updateProduct = asyncHandler(async (req, res) => {
   const { id } = req.params;
   const { name, images, active } = req.body;
-  const product = await Product.findByIdAndUpdate(
-    id,
-    { name, images, active },
-    { new: true }
-  );
-  if (!product) {
-    res.status(404);
-    throw new Error("Product not found");
+  try {
+    const product = await Product.findByIdAndUpdate(
+      id,
+      { name, images, active },
+      { new: true }
+    );
+    if (!product) {
+      res.status(404).json({ message: "Product not found" });
+      return;
+    }
+    res.json(product);
+  } catch (error) {
+    console.error("Error in updateProduct:", error);
+    res.status(500).json({ message: "Server error" });
   }
-
-  // Invalidate cache
-  await invalidateCache(req.redisClient, [
-    `${CACHE_CONFIG.PRODUCT_KEY_PREFIX}${id}`,
-    `${CACHE_CONFIG.ADMIN_PRODUCT_KEY_PREFIX}${id}`,
-    CACHE_CONFIG.PRODUCT_LIST_KEY,
-    CACHE_CONFIG.ADMIN_PRODUCT_LIST_KEY,
-  ]);
-
-  res.json(product);
 });
 
+// Delete a product
 const deleteProduct = asyncHandler(async (req, res) => {
   const { id } = req.params;
-  const product = await Product.findByIdAndDelete(id);
-  if (!product) {
-    res.status(404);
-    throw new Error("Product not found");
-  }
-
-  // Invalidate cache
-  await invalidateCache(req.redisClient, [
-    `${CACHE_CONFIG.PRODUCT_KEY_PREFIX}${id}`,
-    `${CACHE_CONFIG.ADMIN_PRODUCT_KEY_PREFIX}${id}`,
-    CACHE_CONFIG.PRODUCT_LIST_KEY,
-    CACHE_CONFIG.ADMIN_PRODUCT_LIST_KEY,
-  ]);
-
-  res.json({ message: "Product deleted successfully" });
-});
-
-// Helper function to invalidate multiple cache keys
-const invalidateCache = async (redisClient, keys) => {
   try {
-    await Promise.all(keys.map((key) => redisClient.del(key)));
+    const product = await Product.findByIdAndDelete(id);
+    if (!product) {
+      res.status(404).json({ message: "Product not found" });
+      return;
+    }
+    res.json({ message: "Product deleted successfully" });
   } catch (error) {
-    console.error("Error invalidating cache:", error);
+    console.error("Error in deleteProduct:", error);
+    res.status(500).json({ message: "Server error" });
   }
-};
+});
 
 module.exports = {
   getAllProducts,
